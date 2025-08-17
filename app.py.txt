@@ -1,0 +1,54 @@
+import streamlit as st
+import sqlite3
+
+# Connexion
+def get_connection():
+    return sqlite3.connect("molecules.db")
+
+def add_molecule(nom, formule, famille_pharma, famille_chim, specialites, role):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("INSERT INTO molecules (nom, formule, famille_pharmaceutique, famille_chimique, specialites, role) VALUES (?,?,?,?,?,?)",
+              (nom, formule, famille_pharma, famille_chim, specialites, role))
+    conn.commit()
+    conn.close()
+
+def get_molecules():
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT * FROM molecules")
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+st.title("📘 MolCard App - Révisions des PA")
+
+menu = ["Ajouter PA", "Afficher PA"]
+choice = st.sidebar.selectbox("Menu", menu)
+
+if choice == "Ajouter PA":
+    st.subheader("➕ Ajouter un nouveau PA")
+    with st.form("ajout_form"):
+        nom = st.text_input("Nom du PA")
+        formule = st.text_input("Formule semi-développée")
+        famille_pharma = st.text_input("Famille pharmaceutique")
+        famille_chim = st.text_input("Famille chimique")
+        specialites = st.text_input("Spécialités")
+        role = st.text_area("Rôle thérapeutique")
+        submitted = st.form_submit_button("Enregistrer")
+
+        if submitted:
+            add_molecule(nom, formule, famille_pharma, famille_chim, specialites, role)
+            st.success(f"{nom} a été ajouté ✅")
+
+elif choice == "Afficher PA":
+    st.subheader("📋 Liste des Principes Actifs")
+    molecules = get_molecules()
+    for mol in molecules:
+        st.markdown(f"**Nom :** {mol[1]}")
+        st.markdown(f"**Formule :** {mol[2]}")
+        st.markdown(f"**Famille Pharma :** {mol[3]}")
+        st.markdown(f"**Famille Chimique :** {mol[4]}")
+        st.markdown(f"**Spécialités :** {mol[5]}")
+        st.markdown(f"**Rôle :** {mol[6]}")
+        st.markdown("---")
